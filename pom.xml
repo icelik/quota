@@ -5,6 +5,7 @@
 	<packaging>pom</packaging>
 	<modules>
 		<module>quota-service</module>
+		<module>api-gw</module>
 	</modules>
 	<parent>
 		<groupId>org.springframework.boot</groupId>
