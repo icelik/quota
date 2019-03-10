@@ -2,6 +2,7 @@ package icelik.quota.service.config;
 
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.kstream.KStream;
+import org.apache.kafka.streams.kstream.Materialized;
 import org.apache.kafka.streams.kstream.TimeWindows;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -23,7 +24,7 @@ public class QuotaStreamsConfig {
 		requests
 				.groupByKey()
 				.windowedBy(TimeWindows.of(Duration.ofMinutes(1)))
-				.count()
+				.count(Materialized.as("minute-window-store"))
 				.toStream((key, value) -> key.key())
 				.filter((key, value) -> value > (blockingTreshold - 1))
 				.mapValues(value -> String.valueOf(System.currentTimeMillis() + blockTimeInMilis))
