@@ -26,7 +26,6 @@ public class QuotaStreamsConfig {
 				.count()
 				.toStream((key, value) -> key.key())
 				.filter((key, value) -> value > (blockingTreshold - 1))
-				.peek((key, value) -> System.out.println(key + ":" + value))
 				.mapValues(value -> String.valueOf(System.currentTimeMillis() + blockTimeInMilis))
 				.to("blocked");
 		return requests;
