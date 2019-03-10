@@ -29,7 +29,7 @@ public class KafkaConfig {
 		props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
 		props.put(StreamsConfig.APPLICATION_ID_CONFIG, applicationId);
 		props.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass().getName());
-		props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass().getName());
+		props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.Long().getClass().getName());
 		props.put(StreamsConfig.POLL_MS_CONFIG, 10);
 		props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "latest");
 		props.put(StreamsConfig.CACHE_MAX_BYTES_BUFFERING_CONFIG, 0);

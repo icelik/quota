@@ -1,6 +1,8 @@
 package icelik.quota.service.config;
 
+import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.StreamsBuilder;
+import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Materialized;
 import org.apache.kafka.streams.kstream.TimeWindows;
@@ -20,14 +22,15 @@ public class QuotaStreamsConfig {
 
 	@Bean
 	public KStream<String, String> kStream(StreamsBuilder kStreamBuilder) {
-		KStream<String, String> requests = kStreamBuilder.stream("requests");
+		KStream<String, String> requests = kStreamBuilder
+				.stream("requests", Consumed.with(Serdes.String(), Serdes.String()));
 		requests
 				.groupByKey()
 				.windowedBy(TimeWindows.of(Duration.ofMinutes(1)))
 				.count(Materialized.as("minute-window-store"))
 				.toStream((key, value) -> key.key())
 				.filter((key, value) -> value > (blockingTreshold - 1))
-				.mapValues(value -> String.valueOf(System.currentTimeMillis() + blockTimeInMilis))
+				.mapValues(value -> System.currentTimeMillis() + blockTimeInMilis)
 				.to("blocked");
 		return requests;
 	}

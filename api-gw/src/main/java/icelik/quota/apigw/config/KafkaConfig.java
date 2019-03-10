@@ -3,6 +3,7 @@ package icelik.quota.apigw.config;
 import icelik.quota.apigw.kafka.listener.filter.FilterOutOfDateRecordFilterStrategy;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.common.serialization.LongDeserializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.beans.factory.annotation.Value;
@@ -43,14 +44,14 @@ public class KafkaConfig {
 	}
 
 	@Bean
-	public RecordFilterStrategy<String, String> recordFilterStrategy() {
+	public RecordFilterStrategy<String, Long> recordFilterStrategy() {
 		return new FilterOutOfDateRecordFilterStrategy();
 	}
 
 	@Bean
-	ConcurrentKafkaListenerContainerFactory<String, String>
-	kafkaListenerContainerFactory(RecordFilterStrategy<String, String> recordFilterStrategy) {
-		ConcurrentKafkaListenerContainerFactory<String, String> factory =
+	ConcurrentKafkaListenerContainerFactory<String, Long>
+	kafkaListenerContainerFactory(RecordFilterStrategy<String, Long> recordFilterStrategy) {
+		ConcurrentKafkaListenerContainerFactory<String, Long> factory =
 				new ConcurrentKafkaListenerContainerFactory<>();
 		factory.setConsumerFactory(consumerFactory());
 		factory.setRecordFilterStrategy(recordFilterStrategy);
@@ -58,7 +59,7 @@ public class KafkaConfig {
 	}
 
 	@Bean
-	public ConsumerFactory<String, String> consumerFactory() {
+	public ConsumerFactory<String, Long> consumerFactory() {
 		return new DefaultKafkaConsumerFactory<>(consumerConfigs());
 	}
 
@@ -68,7 +69,7 @@ public class KafkaConfig {
 		props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
 		props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 		props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-		props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+		props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, LongDeserializer.class);
 		return props;
 	}
 
