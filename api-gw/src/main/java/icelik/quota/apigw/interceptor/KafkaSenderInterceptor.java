@@ -4,15 +4,13 @@ import com.github.benmanes.caffeine.cache.Cache;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.method.HandlerMethod;
-import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 @Component
-public class KafkaSenderInterceptor extends HandlerInterceptorAdapter {
+public class KafkaSenderInterceptor extends AbstractBaseInterceptor {
 
 	private final KafkaTemplate<String, String> kafkaTemplate;
 	private final Cache<String, Long> blockedCache;
@@ -23,38 +21,21 @@ public class KafkaSenderInterceptor extends HandlerInterceptorAdapter {
 		this.blockedCache = blockedCache;
 	}
 
+
 	@Override
-	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-		HandlerMethod handlerMethod = (HandlerMethod) handler;
-		RequestMapping requestMapping = handlerMethod.getMethodAnnotation(RequestMapping.class);
+	boolean preHandleInternal(HttpServletRequest request, HttpServletResponse response, Object handler) {
+		String key = calculateKey(request, (HandlerMethod) handler);
 
-		if (requestMapping == null)
-			return true;
+		if (blockedCache.getIfPresent(key) == null) {
+			ProducerRecord<String, String> producerRecord =
+					new ProducerRecord<>("requests", key, key);
 
-		if (requestMapping.value().length == 0)
-			return true;
+			kafkaTemplate.send(producerRecord);
 
-		if (requestMapping.value().length == 0)
-			return true;
-
-		if (requestMapping.value()[0] == null)
-			return true;
-
-
-		String remoteAddr = request.getRemoteAddr();
-		String key = remoteAddr + ":" + requestMapping.value()[0];
-
-
-		if (blockedCache.getIfPresent(key) != null)
-			return true;
-
-		ProducerRecord<String, String> producerRecord =
-				new ProducerRecord<>("requests", key, key);
-
-
-		kafkaTemplate.send(producerRecord);
+		}
 
 		return true;
 	}
+
 
 }

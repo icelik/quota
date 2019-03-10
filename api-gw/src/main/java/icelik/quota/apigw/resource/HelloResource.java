@@ -17,5 +17,6 @@ public class HelloResource {
 	@ExceptionHandler(QuotaExceededException.class)
 	@ResponseStatus(HttpStatus.TOO_MANY_REQUESTS)
 	public void handleResourceNotFoundException() {
+		//Do nothing
 	}
 }
