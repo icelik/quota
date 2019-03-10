@@ -14,6 +14,7 @@ import java.time.Duration;
 
 @Configuration
 public class QuotaStreamsConfig {
+	private static final String STORE_NAME = "minute-window-store";
 	@Value("${block.time.in.milis:60000}")
 	private long blockTimeInMilis;
 
@@ -27,7 +28,7 @@ public class QuotaStreamsConfig {
 		requests
 				.groupByKey()
 				.windowedBy(TimeWindows.of(Duration.ofMinutes(1)))
-				.count(Materialized.as("minute-window-store"))
+				.count(Materialized.as(STORE_NAME))
 				.toStream((key, value) -> key.key())
 				.filter((key, value) -> value > (blockingTreshold - 1))
 				.mapValues(value -> System.currentTimeMillis() + blockTimeInMilis)
