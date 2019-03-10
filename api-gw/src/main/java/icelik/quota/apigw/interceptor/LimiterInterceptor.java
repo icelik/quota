@@ -1,7 +1,7 @@
 package icelik.quota.apigw.interceptor;
 
 import com.github.benmanes.caffeine.cache.Cache;
-import icelik.quota.apigw.RateLimitedException;
+import icelik.quota.apigw.QuotaExceededException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.method.HandlerMethod;
@@ -45,7 +45,7 @@ public class LimiterInterceptor extends HandlerInterceptorAdapter {
 		if (blockedCache.getIfPresent(key) == null)
 			return true;
 
-		throw new RateLimitedException();
+		throw new QuotaExceededException();
 	}
 
 
