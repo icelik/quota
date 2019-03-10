@@ -1,1 +1,1 @@
-# Sample Project for quota uimiting rest services using kafka
+# Sample project for quota limiting rest services using Apache Kafka Streams
