@@ -8,6 +8,7 @@ import org.springframework.web.method.HandlerMethod;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.List;
 
 @Component
 public class KafkaSenderInterceptor extends AbstractBaseInterceptor {
@@ -24,18 +25,18 @@ public class KafkaSenderInterceptor extends AbstractBaseInterceptor {
 
 	@Override
 	boolean preHandleInternal(HttpServletRequest request, HttpServletResponse response, Object handler) {
-		String key = calculateKey(request, (HandlerMethod) handler);
+		List<LimitHolder> limitHolders = buildLimitHolders(request, (HandlerMethod) handler);
 
-		if (blockedCache.getIfPresent(key) == null) {
-			ProducerRecord<String, String> producerRecord =
-					new ProducerRecord<>("requests", key, key);
+		limitHolders.forEach(limitHolder -> {
+			if (blockedCache.getIfPresent(limitHolder.getKey()) == null) {
+				ProducerRecord<String, String> producerRecord =
+						new ProducerRecord<>("requests", limitHolder.getKey(), limitHolder.toJsonString());
 
-			kafkaTemplate.send(producerRecord);
+				kafkaTemplate.send(producerRecord);
+			}
 
-		}
-
+		});
 		return true;
 	}
-
 
 }
