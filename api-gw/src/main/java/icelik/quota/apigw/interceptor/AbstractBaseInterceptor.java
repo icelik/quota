@@ -1,44 +1,53 @@
 package icelik.quota.apigw.interceptor;
 
-import org.springframework.web.bind.annotation.RequestMapping;
+import icelik.quota.apigw.Limit;
+import org.springframework.expression.EvaluationContext;
+import org.springframework.expression.ExpressionParser;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public abstract class AbstractBaseInterceptor extends HandlerInterceptorAdapter {
+
+	private ExpressionParser expressionParser = new SpelExpressionParser();
+
 	@Override
 	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
 
-		if (checkParameters(handler))
+		if (checkLimitedAnnotation(handler))
 			return preHandleInternal(request, response, handler);
 
 		return true;
 	}
 
-	private boolean checkParameters(Object handler) {
+	private boolean checkLimitedAnnotation(Object handler) {
+
 		HandlerMethod handlerMethod = (HandlerMethod) handler;
-		RequestMapping requestMapping = handlerMethod.getMethodAnnotation(RequestMapping.class);
+		Limit[] limitAnnotations = handlerMethod.getMethod().getAnnotationsByType(Limit.class);
 
-		if (requestMapping == null)
-			return false;
-
-		if (requestMapping.value().length == 0)
-			return false;
-
-		if (requestMapping.value().length == 0)
-			return false;
-
-		return requestMapping.value()[0] != null;
+		return limitAnnotations != null && limitAnnotations.length > 0;
 	}
 
-	String calculateKey(HttpServletRequest request, HandlerMethod handler) {
-		HandlerMethod handlerMethod = handler;
-		RequestMapping requestMapping = handlerMethod.getMethodAnnotation(RequestMapping.class);
+	List<LimitHolder> buildLimitHolders(HttpServletRequest request, HandlerMethod handlerMethod) {
 
-		String remoteAddr = request.getRemoteAddr();
-		return remoteAddr + ":" + requestMapping.value()[0];
+		EvaluationContext context = new StandardEvaluationContext(handlerMethod.getBean());
+		context.setVariable("IP", request.getRemoteAddr());
+
+		Limit[] limitAnnotations = handlerMethod.getMethod().getAnnotationsByType(Limit.class);
+
+		return Arrays.stream(limitAnnotations).map(limit ->
+				new LimitHolder(expressionParser.parseExpression(limit.key()).getValue(context, String.class),
+						expressionParser.parseExpression(limit.treshold()).getValue(context, Long.class),
+						expressionParser.parseExpression(limit.blockDurationInMilis()).getValue(context, Long.class)))
+				.collect(Collectors.toList());
+
 	}
 
 
