@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<packaging>pom</packaging>
 	<modules>
-		<module>limit-service</module>
+		<module>quota-service</module>
 		<module>api-gw</module>
 	</modules>
 	<parent>
