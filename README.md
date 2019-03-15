@@ -1,1 +1,1 @@
-# Sample project for limit limiting rest services using Apache Kafka Streams
+# Sample project for rate limiting rest services using Apache Kafka Streams
